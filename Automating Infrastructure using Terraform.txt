@@ -1,0 +1,67 @@
+---------------------------------------Automating Infrastructure using Terraform.
+step-1: to check the all versions install or not in your device like terraform, aws cli
+step-2: create the user in aws account and take the access-key and secrets-key
+step-3: ceate one folder using mkdir "ec2-terra"
+           change the directory name using "cd ec2-terra"
+step-4: create main.tf file
+step-5: execute the terraform commands . these are :
+        1. terraform init
+        2.terraform plan 
+       3. terraform apply
+step-6: check in aws console the ec2 instance create or not .. instance is created
+step7: connect the ec2-instance 
+step-8; after connected instance i installed all i need softwares java , jenkins and python.
+
+----------------------------------------------------------------------------------------------------------------------------
+----------------Jenkins Pipeline script--------------
+pipeline {
+    environment {
+        registry = "divya951595/krishna"
+        registryCredential= 'divya'
+        dockerImage = ''
+    }
+    agent any
+
+    stages {
+        stage('Build') {
+            steps {
+                // Get some code from a GitHub repository
+                git branch: 'main', url: 'https://github.com/951595/jenkins-demo.git'
+
+                // Run Maven on a Unix agent.
+               // bat 'mvn clean package'
+
+                // To run Maven on a Windows agent, use
+                // bat "mvn -Dmaven.test.failure.ignore=true clean package"
+            }
+        }
+
+        stage("maven"){
+            steps {
+                bat 'mvn clean package'
+            }
+        }
+        stage("artifacts"){
+            steps {
+                archiveArtifacts artifacts: 'target/*.jar'
+            }
+        }
+        stage("Build image"){
+            steps {
+                script {
+                dockerImage = docker.build registry 
+                }
+            }
+        }
+        stage("push image"){
+            steps{
+                script {
+                docker.withRegistry('', registryCredential){
+                    dockerImage.push()
+                }
+                }
+            }
+        }
+        
+    }
+}
